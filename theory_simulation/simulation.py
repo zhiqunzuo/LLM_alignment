@@ -14,13 +14,13 @@ def simulate(generator: SampleGenerator, batch: int, N: int, seed: int, alpha: f
         mean = np.mean(samples)
         deviation = np.std(samples, ddof=1)
         bestSamples = samples[-1]
-        worstSamples = samples[-1]
+        worstSamples = samples[0]
 
         percentile = generator.getPercentile(alpha=alpha)
         if bestSamples >= percentile:
             numLargerThanPercentile += 1
 
-        if deviation >= delta:
+        if (bestSamples - worstSamples) >= delta:
             numMLM += 1
             if bestSamples >= percentile:
                 numMLMLargerThanPercentile += 1
@@ -36,7 +36,7 @@ def main():
 
     winRates = []
     winRatesMLM = []
-    deltas = [0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5]
+    deltas = [2, 3, 4, 5, 6]
     for delta in deltas:
         winRate, winRateMLM, rateMLM = simulate(
             generator=generator, batch=1000, N=20, seed=42, alpha=0.9, delta=delta
@@ -56,7 +56,7 @@ def main():
     sampleNums = [5, 10, 20, 30, 40, 50, 70, 100]
     for sampleNum in sampleNums:
         winRate, winRateMLM, rateMLM = simulate(
-            generator=generator, batch=1000, N=sampleNum, seed=42, alpha=0.9, delta=3
+            generator=generator, batch=1000, N=sampleNum, seed=42, alpha=0.9, delta=5
         )
         winRates.append(winRate)
         winRatesMLM.append(winRateMLM)
