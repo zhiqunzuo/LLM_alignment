@@ -16,3 +16,6 @@ Thumbs.db
 
 # Genrated images
 *.png
+*.jpg
+
+SpeculativeRejection-main/flashinfer/
