@@ -45,6 +45,9 @@ def get_reward_tokenizer(reward_model_name: str, local_files_only: bool = True):
 def get_reward_model(
     reward_model_name: str, reward_tokenizer, device: str, local_files_only: bool = True
 ):
+    print("\n" * 10)
+    print("device = {}".format(device))
+    print("\n" * 10)
     if is_mistral_type(reward_model_name):
         reward_model = transformers.pipeline(
             "sentiment-analysis",
@@ -165,8 +168,10 @@ def get_reward_tokens(
         "reward-model-human" in reward_model_name
         or "reward-model-sim" in reward_model_name
     ):
-        templated_question = get_templated_prompt(question, "sft10k", reward_tokenizer)
-        sequences = [templated_question + output_text for output_text in output_texts]
+        templated_question = get_templated_prompt(
+            question, "sft10k", reward_tokenizer)
+        sequences = [templated_question +
+                     output_text for output_text in output_texts]
         reward_tokens = reward_tokenizer(
             sequences,
             return_tensors="pt",
@@ -284,7 +289,8 @@ def get_rewards(
         reward_list: list[float] = []
         for token_dict in rebatched_tokens:
             rewards = (
-                reward_model(**token_dict, return_dict=False)[0].squeeze().tolist()
+                reward_model(
+                    **token_dict, return_dict=False)[0].squeeze().tolist()
             )
             if type(rewards) == float:
                 rewards = [rewards]
@@ -308,8 +314,8 @@ def rebatch_tokens_for_farm(
     for idx in range(0, input_ids.shape[0], step_size):
         rebatched_tokens.append(
             {
-                "input_ids": input_ids[idx : idx + step_size, :],
-                "attention_mask": attention_mask[idx : idx + step_size, :],
+                "input_ids": input_ids[idx: idx + step_size, :],
+                "attention_mask": attention_mask[idx: idx + step_size, :],
             }
         )
     return rebatched_tokens
@@ -327,8 +333,8 @@ def rebatch_tokens_for_eurus(
     for idx in range(0, input_ids.shape[0], step_size):
         rebatched_tokens.append(
             {
-                "input_ids": input_ids[idx : idx + step_size, :],
-                "attention_mask": attention_mask[idx : idx + step_size, :],
+                "input_ids": input_ids[idx: idx + step_size, :],
+                "attention_mask": attention_mask[idx: idx + step_size, :],
             }
         )
     return rebatched_tokens
@@ -343,7 +349,7 @@ def rebatch_tokens_tensor(
     step_size = max(1, int(np.floor(input_ids.shape[0] / num_chunks)))
     for idx in range(0, input_ids.shape[0], step_size):
         rebatched_tokens.append(
-            input_ids[idx : idx + step_size, :],
+            input_ids[idx: idx + step_size, :],
         )
     return rebatched_tokens
 
@@ -357,6 +363,6 @@ def rebatch_tokens_texts(
     step_size = max(1, int(np.floor(len(input_ids) / num_chunks)))
     for idx in range(0, len(input_ids), step_size):
         rebatched_tokens.append(
-            input_ids[idx : idx + step_size],
+            input_ids[idx: idx + step_size],
         )
     return rebatched_tokens

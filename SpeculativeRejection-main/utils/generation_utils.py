@@ -1,9 +1,8 @@
+from engine.utils.sampling import sample, norm_logits
 import torch
 import transformers
 
 transformers.logging.set_verbosity_error()
-
-from engine.utils.sampling import sample, norm_logits
 
 
 def get_generation_tokenizer(
@@ -119,7 +118,7 @@ def get_output_texts(
             ), f"prompt: {prompt} | generation_text: {generation_text}, {len(split_pieces)}, {split_pieces}"
             output_text = prompt.join(split_pieces[1:])
         except:
-            output_text = generation_text[len(prompt) :]
+            output_text = generation_text[len(prompt):]
         output_texts.append(output_text)
     return output_texts
 
@@ -144,7 +143,8 @@ def get_memory_constrained_generation(
 
     past_key_values = None
     batch_size = generation_ids.shape[0]
-    finished_generations = torch.zeros(batch_size).bool().to(generation_model.device)
+    finished_generations = torch.zeros(
+        batch_size).bool().to(generation_model.device)
     while generation_ids.shape[-1] < args.max_tokens:
         try:
             out_dict = generation_model.generate(
@@ -163,7 +163,8 @@ def get_memory_constrained_generation(
             if "past_key_values" in out_dict:
                 past_key_values = out_dict.past_key_values
             else:
-                raise Exception("past_key_values (KV cache) not found in model output")
+                raise Exception(
+                    "past_key_values (KV cache) not found in model output")
             generation_ids = out_dict.sequences
         except torch.cuda.OutOfMemoryError:
             break

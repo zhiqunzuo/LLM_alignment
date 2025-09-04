@@ -1,25 +1,24 @@
+from utils.read_write_utils import (
+    create_output_folder,
+    get_generation_prompts,
+    write_to_disk,
+)
+from speculative_rejection import SpeculativeRejection
+from pprint import pprint
+from datetime import timedelta
+from best_of_n import BestOfN
+from accelerate.utils import gather_object, InitProcessGroupKwargs
+from accelerate import PartialState
+import torch
+import secrets
+import gc
+import argparse
 import os
 
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 # NOTE: the following environment variables are set to avoid timeouts in NCCL
 os.environ["NCCL_BLOCKING_WAIT"] = "1"
 os.environ["NCCL_TIMEOUT_MS"] = str(1000 * 60 * 60 * 3)  # ms * s * m * h
-
-import argparse
-import gc
-import secrets
-import torch
-from accelerate import PartialState
-from accelerate.utils import gather_object, InitProcessGroupKwargs
-from best_of_n import BestOfN
-from datetime import timedelta
-from pprint import pprint
-from speculative_rejection import SpeculativeRejection
-from utils.read_write_utils import (
-    create_output_folder,
-    get_generation_prompts,
-    write_to_disk,
-)
 
 
 def get_args():
@@ -144,7 +143,8 @@ def main() -> None:
 
     latency_list = []
     while len(generation_prompts) > 0:
-        print(f"Number of prompts remaining: {len(generation_prompts)}", flush=True)
+        print(
+            f"Number of prompts remaining: {len(generation_prompts)}", flush=True)
         prompt_dict = generation_prompts[0]
         pprint(prompt_dict)
         prompt: str = prompt_dict["prompt"]

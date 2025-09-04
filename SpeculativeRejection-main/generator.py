@@ -31,7 +31,8 @@ class Generator(object):
         validate_llm_name(args.llm_name)
         validate_reward_model_name(args.reward_model_name)
         llm_name = get_full_model_name(args.model_dir, args.llm_name)
-        reward_model_name = get_full_model_name(args.model_dir, args.reward_model_name)
+        reward_model_name = get_full_model_name(
+            args.model_dir, args.reward_model_name)
 
         self.llm_name = llm_name
         self.reward_model_name = reward_model_name
@@ -64,7 +65,8 @@ class Generator(object):
         else:
             self.generation_model = get_generation_model(
                 llm_name,
-                distributed_state.device,
+                # distributed_state.device,
+                device="cuda:0",
                 local_files_only=args.local_files_only,
             )
 
@@ -75,7 +77,8 @@ class Generator(object):
             self.reward_model = get_reward_model(
                 reward_model_name,
                 self.reward_tokenizer,
-                distributed_state.device,
+                # distributed_state.device,
+                device="cuda:1",
                 local_files_only=args.local_files_only,
             )
 

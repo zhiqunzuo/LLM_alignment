@@ -19,3 +19,6 @@ Thumbs.db
 *.jpg
 
 SpeculativeRejection-main/flashinfer/
+SpeculativeRejection-main/archive/
+
+*problem.py
