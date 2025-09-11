@@ -19,7 +19,8 @@ def get_generation_prompts(args: argparse.Namespace) -> list[dict[str, Any]]:
     output_folder = args.output_folder
     with open(data_filename, "r") as f:
         generation_prompts: list[dict[str, Any]] = json.load(f)
-    remaining_prompts = remove_generated_prompts(generation_prompts, output_folder)
+    remaining_prompts = remove_generated_prompts(
+        generation_prompts, output_folder)
     return remaining_prompts
 
 

@@ -45,9 +45,6 @@ def get_reward_tokenizer(reward_model_name: str, local_files_only: bool = True):
 def get_reward_model(
     reward_model_name: str, reward_tokenizer, device: str, local_files_only: bool = True
 ):
-    print("\n" * 10)
-    print("device = {}".format(device))
-    print("\n" * 10)
     if is_mistral_type(reward_model_name):
         reward_model = transformers.pipeline(
             "sentiment-analysis",

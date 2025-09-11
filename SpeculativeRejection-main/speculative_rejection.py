@@ -11,7 +11,8 @@ from utils.reward_utils import compute_scores
 from utils.sbon_utils import get_memory_constrained_batch_size
 from utils.trajectory import Trajectory
 from utils.validation_utils import validate_alpha
-import torch, gc
+import torch
+import gc
 from engine.models.llm import LLM
 
 
@@ -34,7 +35,8 @@ class SpeculativeRejection(Generator):
             self.generation_tokenizer,
         )
         input_length = batch_encoding.input_ids.shape[-1]
-        batch_size = get_memory_constrained_batch_size(input_length, self.args.llm_name)
+        batch_size = get_memory_constrained_batch_size(
+            input_length, self.args.llm_name)
 
         # set max tokens for engine
         max_all_tokens = min(
@@ -62,7 +64,8 @@ class SpeculativeRejection(Generator):
 
         while current_length < max_all_tokens:
             if isinstance(self.generation_model, LLM):
-                batch_encoding = self.generation_model.batch_encode(current_generations)
+                batch_encoding = self.generation_model.batch_encode(
+                    current_generations)
             else:
                 batch_encoding = get_input_encoding(
                     current_generations,
@@ -116,18 +119,19 @@ class SpeculativeRejection(Generator):
 
             self.clock.start()
             padded_output_texts = get_output_texts(
-                    partial_generation,
-                    self.templated_prompt,
-                    self.generation_tokenizer,
-                    skip_special_tokens=False,
-                )
+                partial_generation,
+                self.templated_prompt,
+                self.generation_tokenizer,
+                skip_special_tokens=False,
+            )
             unpadded_output_texts = unpad_output_texts(
-                    padded_output_texts, self.stop_tokens
-                )
+                padded_output_texts, self.stop_tokens
+            )
             self.clock.stop(f"decoding - current_length {current_length}")
-            
+
             if self.is_self_reward:
-                reward_list = self.generation_model.self_evaluate(partial_generation)
+                reward_list = self.generation_model.self_evaluate(
+                    partial_generation)
             else:
                 self.clock.start()
                 reward_list = compute_scores(
@@ -138,7 +142,7 @@ class SpeculativeRejection(Generator):
                     self.reward_model,
                 )
                 self.clock.stop(f"reward - current_length {current_length}")
-            
+
             self.clock.start()
             current_trajectories: list[Trajectory] = [
                 Trajectory(
@@ -157,7 +161,8 @@ class SpeculativeRejection(Generator):
             )
             if len(current_generations) == 0:
                 break
-            self.clock.stop(f"speculative rejection - current_length {current_length}")
+            self.clock.stop(
+                f"speculative rejection - current_length {current_length}")
             self.clock.start()
         self.trajectories = (
             self.trajectories + current_trajectories + self.finished_trajectories
@@ -175,7 +180,8 @@ class SpeculativeRejection(Generator):
         ]
         self.finished_trajectories += previous_finished_trajectories
         trajectories_to_rank = previous_finished_trajectories + current_trajectories
-        trajectories_to_rank.sort(key=lambda trajectory: trajectory.score, reverse=True)
+        trajectories_to_rank.sort(
+            key=lambda trajectory: trajectory.score, reverse=True)
         keep_fraction = 1.0 - alpha
         keep_amount = int(round(keep_fraction * len(trajectories_to_rank)))
         self.trajectories = trajectories_to_rank[:keep_amount]

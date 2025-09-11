@@ -3,6 +3,7 @@ from utils.read_write_utils import (
     get_generation_prompts,
     write_to_disk,
 )
+from early_stop_bon import EarlyStopBon
 from speculative_rejection import SpeculativeRejection
 from pprint import pprint
 from datetime import timedelta
@@ -53,6 +54,12 @@ def get_args():
     parser.add_argument(
         "--speculative_rejection",
         help="use speculative rejection for generation?",
+        action="store_true",
+        default=False,
+    )
+    parser.add_argument(
+        "--variance_reduce",
+        help="use sample variance for early stopping generation?",
         action="store_true",
         default=False,
     )
@@ -132,11 +139,17 @@ def main() -> None:
     args = get_args()
     pprint(vars(args))
 
-    generator = (
-        SpeculativeRejection(args, distributed_state)
-        if args.speculative_rejection
-        else BestOfN(args, distributed_state)
-    )
+    # generator = (
+    #    SpeculativeRejection(args, distributed_state)
+    #    if args.speculative_rejection
+    #    else BestOfN(args, distributed_state)
+    # )
+    if args.speculative_rejection:
+        generator = SpeculativeRejection(args, distributed_state)
+    elif args.variance_reduce:
+        generator = EarlyStopBon(args, distributed_state)
+    else:
+        generator = BestOfN(args, distributed_state)
 
     generation_prompts = get_generation_prompts(args)
     output_folder = create_output_folder(args)

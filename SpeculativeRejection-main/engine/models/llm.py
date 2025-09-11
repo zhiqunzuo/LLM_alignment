@@ -18,6 +18,8 @@ from engine.utils.sampling import norm_logits, sample
 from engine.utils.info import gpu_memory, gpu_free_memory
 
 from flashinfer.norm import rmsnorm
+
+
 def layer_norm(
     hidden_states: torch.Tensor,
     eps: float,
@@ -102,7 +104,8 @@ class LLM:
     ) -> None:
 
         self.local_files_only = local_files_only
-        print(f"Initializing LLM with {model_name} on {device} with dtype: {dtype}")
+        print(
+            f"Initializing LLM with {model_name} on {device} with dtype: {dtype}")
         self.device = device
         self.dtype = dtype
         self.config = AutoConfig.from_pretrained(
@@ -171,7 +174,8 @@ class LLM:
         except:
             print("RoPE cache not found, initializing RoPE cache")
             self.cos_cache, self.sin_cache = self._set_cos_sin_cache(
-                hf_model.model.layers[0].self_attn.rotary_emb.inv_freq.to(self.device)
+                hf_model.model.layers[0].self_attn.rotary_emb.inv_freq.to(
+                    self.device)
             )
 
             # for vllm
@@ -260,8 +264,8 @@ class LLM:
         )
 
         query_states, key_states = self.apply_rotary_pos_emb(
-                query_states, key_states, position_ids
-            )
+            query_states, key_states, position_ids
+        )
 
         hidden_states = flash_attn_with_kvcache(
             q=query_states.transpose(1, 2),
@@ -371,7 +375,8 @@ class LLM:
         )
         bsz = q.shape[0]
         q = q.view(bsz, -1, self.num_heads, self.head_dim).transpose(1, 2)
-        k = k.view(bsz, -1, self.num_key_value_heads, self.head_dim).transpose(1, 2)
+        k = k.view(bsz, -1, self.num_key_value_heads,
+                   self.head_dim).transpose(1, 2)
         return q, k
 
     def get_ctx(self, input_ids: torch.LongTensor):
@@ -387,27 +392,28 @@ class LLM:
     def prefill(self, input_ids: torch.LongTensor):
         self.kv_cache.clear()
 
-        iter_prefill = max((input_ids.shape[0] * input_ids.shape[1]) // (5000), 1)
+        iter_prefill = max(
+            (input_ids.shape[0] * input_ids.shape[1]) // (5000), 1)
         T = (input_ids.shape[1] + iter_prefill - 1) // iter_prefill
         iter_prefill = (input_ids.shape[1] + T - 1) // T
         for i in range(iter_prefill):
-            if input_ids[:, i * T : (i + 1) * T].shape[-1] < 1:
+            if input_ids[:, i * T: (i + 1) * T].shape[-1] < 1:
                 print("break")
                 break
             try:
                 position_ids, storage_ids = self.get_ctx(
-                    input_ids[:, i * T : (i + 1) * T]
+                    input_ids[:, i * T: (i + 1) * T]
                 )
                 if i == iter_prefill - 1:
                     logits = self.inference(
-                        input_ids=input_ids[:, i * T : (i + 1) * T],
+                        input_ids=input_ids[:, i * T: (i + 1) * T],
                         position_ids=position_ids,
                         attention_mask=None,
                         storage_ids=storage_ids,
                     )
                 else:
                     self.inference(
-                        input_ids=input_ids[:, i * T : (i + 1) * T],
+                        input_ids=input_ids[:, i * T: (i + 1) * T],
                         position_ids=position_ids,
                         attention_mask=None,
                         storage_ids=storage_ids,
@@ -420,7 +426,7 @@ class LLM:
                     input_ids.shape,
                     i,
                     T,
-                    input_ids[:, i * T : (i + 1) * T].shape,
+                    input_ids[:, i * T: (i + 1) * T].shape,
                     self.kv_cache.kv_offset,
                 )
                 raise e
@@ -428,7 +434,8 @@ class LLM:
         return logits
 
     def encode(self, text: str):
-        input_ids = self.tokenizer(text, return_tensors="pt").input_ids.to(self.device)
+        input_ids = self.tokenizer(
+            text, return_tensors="pt").input_ids.to(self.device)
         return input_ids
 
     def batch_encode(self, text_list):
@@ -485,7 +492,8 @@ class LLM:
         torch.cuda.synchronize()
         free_mem_GB = gpu_free_memory(self.device) - 15  # 4GB buffer
         # for example, (1, 32K) seq len = 16GB for sft10k
-        max_seq = int(free_mem_GB * 1024 * 2 / batch_size * (self.num_key_value_groups))
+        max_seq = int(free_mem_GB * 1024 * 2 / batch_size *
+                      (self.num_key_value_groups))
         max_seq = min(max_seq, self.max_tokens)
         # assert max_seq > cur_len, f"Max sequence length {max_seq} is less than input length {cur_len}"
         return max_seq - cur_len
@@ -495,9 +503,9 @@ class LLM:
         torch.cuda.empty_cache()
         torch.cuda.synchronize()
         free_mem_GB = gpu_free_memory(self.device) - 4
-        batch_size = int(free_mem_GB * 1024 * 2 / max_seq * (self.num_key_value_groups))
+        batch_size = int(free_mem_GB * 1024 * 2 / max_seq *
+                         (self.num_key_value_groups))
         return batch_size
-
 
     @torch.inference_mode()
     def inference_wo_cache(self, input_ids: torch.LongTensor):
@@ -525,26 +533,29 @@ class LLM:
     @torch.inference_mode()
     def self_evaluate(self, input_ids: torch.LongTensor):
         score = []
-        
+
         T = 1
         num_iter = (input_ids.shape[0] + T - 1) // T
 
         for i in range(num_iter):
-            input_ = input_ids[i * T : (i + 1) * T]
+            input_ = input_ids[i * T: (i + 1) * T]
             logits = self.inference_wo_cache(input_)
 
             loss = None
 
             # Shift so that tokens < n predict n
-            shift_logits = logits[..., :-1, :].contiguous() # [T, seq, vocab_size]
-            shift_labels = input_ids[i * T : (i + 1) * T, 1:].contiguous() # [T, seq]
+            # [T, seq, vocab_size]
+            shift_logits = logits[..., :-1, :].contiguous()
+            shift_labels = input_ids[i *
+                                     T: (i + 1) * T, 1:].contiguous()  # [T, seq]
             shift_logits = shift_logits.view(-1, shift_logits.size(-1))
             shift_labels = shift_labels.view(-1)
             loss_fct = torch.nn.CrossEntropyLoss(reduction='none')
             # Enable model parallelism
-            loss = -torch.exp(loss_fct(shift_logits, shift_labels).view(T, -1).mean(dim=-1))
+            loss = -torch.exp(loss_fct(shift_logits,
+                              shift_labels).view(T, -1).mean(dim=-1))
             score.append(loss.tolist())
-        
+
         return score
 
     @torch.inference_mode()
@@ -621,7 +632,8 @@ class LLM:
                 generated_ids[i].extend(token)
 
             just_finished = (
-                torch.LongTensor(np.array(generated_ids))[:, -1].to(self.device)
+                torch.LongTensor(np.array(generated_ids))[
+                    :, -1].to(self.device)
                 == self.tokenizer.pad_token_id
             )
             finished_generations = finished_generations | just_finished
@@ -642,4 +654,3 @@ class LLM:
         torch.cuda.empty_cache()
 
         return torch.LongTensor(np.array(generated_ids)).to(self.device)
-

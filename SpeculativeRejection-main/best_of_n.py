@@ -57,6 +57,9 @@ class BestOfN(Generator):
                     top_p=self.args.top_p,
                     temperature=self.args.temperature,
                 )
+                print("full generation = {}".format(full_generation))
+                import sys
+                sys.exit()
             except RuntimeError as e:
                 print(e)
                 # reduce batch size and then try again
@@ -81,7 +84,6 @@ class BestOfN(Generator):
                 full_generation = torch.cat(
                     [full_generation_1, full_generation_2], dim=0
                 )
-
         else:
             full_generation: torch.LongTensor = self.generation_model.generate(
                 input_ids=batch_encoding.input_ids,
@@ -106,6 +108,7 @@ class BestOfN(Generator):
         unpadded_output_texts = unpad_output_texts(
             padded_output_texts, self.stop_tokens
         )
+
         self.clock.stop("decoding")
         self.clock.start()
         reward_list = compute_scores(
@@ -115,6 +118,9 @@ class BestOfN(Generator):
             self.reward_tokenizer,
             self.reward_model,
         )
+        print("reward list = {}".format(reward_list))
+        import sys
+        sys.exit()
         self.clock.stop("reward pass")
         self.clock.start()
         for padded_output_text, unpadded_output_text, score in zip(

@@ -59,7 +59,8 @@ class Generator(object):
         if args.speculative_rejection:
             self.generation_model = LLM(
                 llm_name,
-                device=distributed_state.device,
+                # device=distributed_state.device,
+                device="cuda:0",
                 local_files_only=args.local_files_only,
             )
         else:
