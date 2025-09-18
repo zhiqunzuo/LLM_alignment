@@ -20,3 +20,6 @@ Thumbs.db
 
 SpeculativeRejection-main/flashinfer/
 SpeculativeRejection-main/archive/
+
+ SpeculativeRejection-main/SpecRej.tar.gz
+ *.log
