@@ -59,15 +59,13 @@ class Generator(object):
         if args.speculative_rejection:
             self.generation_model = LLM(
                 llm_name,
-                # device=distributed_state.device,
-                device="cuda:0",
+                device=distributed_state.device,
                 local_files_only=args.local_files_only,
             )
         else:
             self.generation_model = get_generation_model(
                 llm_name,
-                # distributed_state.device,
-                device="cuda:0",
+                distributed_state.device,
                 local_files_only=args.local_files_only,
             )
 
@@ -78,8 +76,7 @@ class Generator(object):
             self.reward_model = get_reward_model(
                 reward_model_name,
                 self.reward_tokenizer,
-                # distributed_state.device,
-                device="cuda:1",
+                distributed_state.device,
                 local_files_only=args.local_files_only,
             )
 

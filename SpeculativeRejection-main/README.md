@@ -110,8 +110,10 @@ If you find Speculative Rejection useful or relevant to your project and researc
 }
 ```
 
-accelerate launch --num_processes 1 --num_machines 1 --gpu_ids 4,5,6,7 --machine_rank 0 --mixed_precision no --dynamo_backend no main.py --output_folder ./archive/Bo15_Meta-Llama-3-8B_ArmoRM-Llama3-8B-v0.1_0 --llm_name Meta-Llama-3-8B --reward_model_name ArmoRM-Llama3-8B-v0.1 --max_tokens 8000 --batch_size 3 --seed 0 
+accelerate launch --multi_gpu --num_processes 6 --num_machines 1 --gpu_ids 0,1,2,3,4,5 --machine_rank 0 --mixed_precision no --dynamo_backend no main.py --output_folder ./archive/Bo120_Meta-Llama-3-8B_ArmoRM-Llama3-8B-v0.1_0 --llm_name Meta-Llama-3-8B --reward_model_name ArmoRM-Llama3-8B-v0.1 --max_tokens 8000 --batch_size 20 --seed 0 
+
+nohup accelerate launch --num_processes 1 --num_machines 1 --gpu_ids 0 --machine_rank 0 --mixed_precision no --dynamo_backend no main.py --output_folder ./archive/Bo120_Meta-Llama-3-8B_ArmoRM-Llama3-8B-v0.1_0 --llm_name Meta-Llama-3-8B --reward_model_name ArmoRM-Llama3-8B-v0.1 --max_tokens 8000 --batch_size 120 --seed 0 > bon.log 2>&1 &
 
 accelerate launch --num_processes 1 --num_machines 1 --gpu_ids 4,5,6,7 --machine_rank 0 --mixed_precision no --dynamo_backend no main.py --output_folder ./archive/SpR_alpha_0.5_Meta-Llama-3-8B_ArmoRM-Llama3-8B-v0.1_0 --llm_name Meta-Llama-3-8B --reward_model_name ArmoRM-Llama3-8B-v0.1 --max_tokens 8000 --seed 0 --speculative_rejection --alpha 0.5
 
-accelerate launch --num_processes 1 --num_machines 1 --gpu_ids 4,5,6,7 --machine_rank 0 --mixed_precision no --dynamo_backend no main.py --output_folder ./archive/Bo15_Meta-Llama-3-8B_ArmoRM-Llama3-8B-v0.1_0 --llm_name Meta-Llama-3-8B --reward_model_name ArmoRM-Llama3-8B-v0.1 --max_tokens 8000 --batch_size 25 --seed 0 --variance_reduce
+nohup accelerate launch --num_processes 1 --num_machines 1 --gpu_ids 1 --machine_rank 0 --mixed_precision no --dynamo_backend no main.py --output_folder ./archive/Eo120_Meta-Llama-3-8B_ArmoRM-Llama3-8B-v0.1_0 --llm_name Meta-Llama-3-8B --reward_model_name ArmoRM-Llama3-8B-v0.1 --max_tokens 8000 --batch_size 20 --seed 0 --variance_reduce > eon.log 2>&1 &

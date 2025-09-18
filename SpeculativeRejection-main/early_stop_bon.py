@@ -23,7 +23,7 @@ class EarlyStopBon(Generator):
             prompt, self.args.llm_name, self.generation_tokenizer
         )
 
-        sampling_num = 4
+        sampling_num = 6
         sampling_size = int(self.args.batch_size / sampling_num)
 
         variances = []
@@ -95,7 +95,7 @@ class EarlyStopBon(Generator):
             variances.append(variance)
             min_variance = min(variances)
             max_variance = max(variances)
-            if (max_variance - min_variance) / min_variance > 0.1:
+            if (max_variance - min_variance) / min_variance > 0.6:
                 break
 
         self.clock.stop("finish")
