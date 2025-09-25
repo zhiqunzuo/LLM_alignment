@@ -27,7 +27,7 @@ class EarlyStopBon(Generator):
         sampling_size = int(self.args.batch_size / sampling_num)
 
         variances = []
-        for __ in range(sampling_num):
+        for i in range(sampling_num):
             templated_prompts = [self.templated_prompt] * sampling_size
             batch_encoding = get_input_encoding(
                 templated_prompts,
@@ -97,6 +97,9 @@ class EarlyStopBon(Generator):
             max_variance = max(variances)
             if (max_variance - min_variance) / min_variance > 0.6:
                 break
+        
+        with open("stopped_batches.txt", "a") as f:
+            f.write("{}\n".format(i))
 
         self.clock.stop("finish")
         self.post_generation()
